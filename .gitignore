@@ -2,6 +2,7 @@
 *.o
 *.a
 *.so
+yaniv-engine-client
 
 # Folders
 _obj
