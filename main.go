@@ -14,10 +14,8 @@ func main() {
 
 	game, err := yaniv.GameCreate("167", 200, 5)
 	debug(game, err)
-
 	game, err = yaniv.PlayerAdd("167", "toto")
 	debug(game, err)
-
 	game, err = yaniv.PlayerAdd("167", "titi")
 	debug(game, err)
 	game, err = yaniv.PlayerReady("167", "toto", true)
@@ -36,12 +34,12 @@ func main() {
 			playing = game.Players[1].Name
 			cards = game.Players[1].Hand.Cards
 		}
-		for i, card := range cards {
-			for j := 1; j < len(cards); j++ {
-				if i != j && len(discard) < 2 {
-					if card%13 == cards[j-i]%13 {
-						discard = append(discard, cards[j-1])
-						discard = append(discard, card)
+		for i := 0; i < len(cards)-1; i++ {
+			for j := i + 1; j < len(cards); j++ {
+				if len(discard) < 2 {
+					if cards[i]%13 == cards[j]%13 {
+						discard = append(discard, cards[i])
+						discard = append(discard, cards[j])
 					}
 				}
 			}
@@ -53,6 +51,7 @@ func main() {
 					max = card
 				}
 			}
+			discard = append(discard, max)
 		}
 		fmt.Println(playing, cards, discard)
 
@@ -60,6 +59,7 @@ func main() {
 		reader.ReadString('\n')
 		game, err = yaniv.ActionTake("167", playing, 0, discard)
 		debug(nil, err)
+		discard = make([]int, 0)
 	}
 }
 
