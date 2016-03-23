@@ -1,26 +1,42 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"log"
-	"os"
+	"strconv"
+	"time"
 
 	"github.com/goyaniv/yaniv-engine-client/client"
 )
 
 func main() {
-	yaniv := client.NewClient("http://localhost:3000")
+	for i := 0; i < 100; i++ {
+		//fmt.Println(i)
 
-	game, err := yaniv.GameCreate("167", 200, 5)
-	debug(game, err)
-	game, err = yaniv.PlayerAdd("167", "toto")
-	debug(game, err)
-	game, err = yaniv.PlayerAdd("167", "titi")
-	debug(game, err)
-	game, err = yaniv.PlayerReady("167", "toto", true)
+		go launchgame(strconv.Itoa(i))
+		time.Sleep(1000 * time.Millisecond)
+
+	}
+	time.Sleep(60000 * time.Millisecond)
+}
+
+func launchgame(name string) {
+	fmt.Println("name:", name)
+	yaniv := client.NewClient("http://localhost:3001")
+	yaniv.GameDelete(name)
+	game, err := yaniv.GameCreate(name, 200, 5)
 	debug(nil, err)
-	game, err = yaniv.PlayerReady("167", "titi", true)
+
+	game, err = yaniv.PlayerAdd(name, "toto")
+	debug(nil, err)
+
+	game, err = yaniv.PlayerAdd(name, "titi")
+	debug(nil, err)
+
+	game, err = yaniv.PlayerReady(name, "toto", true)
+	debug(nil, err)
+
+	game, err = yaniv.PlayerReady(name, "titi", true)
 	debug(nil, err)
 
 	var discard []int
@@ -34,6 +50,10 @@ func main() {
 			playing = game.Players[1].Name
 			cards = game.Players[1].Hand.Cards
 		}
+		if len(cards) == 1 {
+			//_, err = yaniv.ActionYaniv(name, playing)
+			debug(nil, err)
+		}
 		for i := 0; i < len(cards)-1; i++ {
 			for j := i + 1; j < len(cards); j++ {
 				if len(discard) < 2 {
@@ -45,26 +65,22 @@ func main() {
 			}
 		}
 		if len(discard) < 2 {
-			max := 0
-			for _, card := range cards {
-				if card%12 > max {
-					max = card
-				}
-			}
-			discard = append(discard, max)
+			discard = append(discard, cards[0])
 		}
-		fmt.Println(playing, cards, discard)
+		//reader := bufio.NewReader(os.Stdin)
+		//reader.ReadString('\n')
+		game, err = yaniv.ActionTake(name, playing, 0, discard)
 
-		reader := bufio.NewReader(os.Stdin)
-		reader.ReadString('\n')
-		game, err = yaniv.ActionTake("167", playing, 0, discard)
+		// fmt.Println(playing, cards, discard)
 		debug(nil, err)
 		discard = make([]int, 0)
+		time.Sleep(900 * time.Millisecond)
+
 	}
 }
 
 func debug(i interface{}, err error) {
 	if err != nil {
-		log.Println(err)
+		log.Println(i, err)
 	}
 }
